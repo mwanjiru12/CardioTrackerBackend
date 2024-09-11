@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, decode_token
 from ..models import User
 from .. import db
 
@@ -46,6 +46,7 @@ def login():
         return response
 
     return jsonify({'message': 'Invalid credentials'}), 401
+
 @bp.route('/protected', methods=['GET'])
 @jwt_required()
 def protected_route():
@@ -58,3 +59,48 @@ def protected_route():
         'location': user.location
     }), 200
 
+@bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_current_user():
+    user_id = get_jwt_identity()  # Get the user ID from the JWT token
+    user = User.query.get(user_id)  # Query the database for the user
+
+    if user:
+        return jsonify({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'location': user.location,
+                'name': user.name
+            }
+        }), 200
+    else:
+        return jsonify({'message': 'User not found.'}), 404
+
+@bp.route('/auto_login', methods=['POST'])
+def auto_login():
+    data = request.json
+    jwt_token = data.get('jwt')
+
+    if not jwt_token:
+        return jsonify({'message': 'JWT is required'}), 400
+
+    try:
+        # Decode the JWT to get the user_id
+        decoded_token = decode_token(jwt_token)  # Correct method to use
+        user_id = decoded_token['identity']  # Adjust based on how the JWT is structured
+        
+        # Query the database for the user
+        user = User.query.get(user_id)
+        if user:
+            return jsonify({
+                'id': user.id,
+                'username': user.username,
+                'location': user.location,
+                'name': user.name
+            }), 200
+        else:
+            return jsonify({'message': 'User not found.'}), 404
+
+    except Exception as e:
+        return jsonify({'message': 'Invalid or expired token.'}), 401

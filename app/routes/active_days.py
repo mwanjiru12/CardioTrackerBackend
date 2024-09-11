@@ -54,3 +54,23 @@ def delete_active_day(id):
         db.session.commit()
         return jsonify({'message': 'Deleted successfully'})
     return jsonify({'message': 'Not found'}), 404
+
+@bp.route('/active_days/<int:id>', methods=['GET'])
+@jwt_required()
+def get_active_day(id):
+    # Query the database for the active day by ID
+    active_day = ActiveDay.query.get(id)
+
+    if not active_day:
+        return jsonify({'message': 'Active day not found.'}), 404
+
+    # Return the active day details
+    return jsonify({
+        'active_day': {
+            'id': active_day.id,
+            'date': active_day.date,
+            'day_of_week': active_day.day_of_week,
+            'streak': active_day.streak,
+            'user_id': active_day.user_id
+        }
+    }), 200
