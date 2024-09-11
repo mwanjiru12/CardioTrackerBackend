@@ -2,9 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_cors import CORS  # Import CORS
 
 db = SQLAlchemy()
-migrate = Migrate()  # Initialize Migrate without app and db instances
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
@@ -17,15 +18,14 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     jwt = JWTManager(app)
-
-    # Initialize Migrate with app and db instances
     migrate.init_app(app, db)
+
+    # Initialize CORS
+    CORS(app, resources={r"/*": {"origins": "http://localhost:4000"}}, supports_credentials=True)  # Allow requests from frontend origin
 
     # Import routes
     from .routes import auth, active_days
     app.register_blueprint(auth.bp)
-    # app.register_blueprint(users.bp)
-    # app.register_blueprint(activities.bp)
     app.register_blueprint(active_days.bp)
 
     return app
