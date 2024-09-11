@@ -14,6 +14,12 @@ def register():
     name = data.get('name')
     location = data.get('location')
 
+    # Check if the username already exists
+    existing_user = User.query.filter_by(username=username).first()
+    if existing_user:
+        return jsonify({'message': 'Username already exists. Please choose another one.'}), 409  # Conflict
+
+    # Create a new user if username doesn't exist
     new_user = User(username=username, password=password, name=name, location=location)
     db.session.add(new_user)
     db.session.commit()
@@ -26,13 +32,19 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
 
     if user and check_password_hash(user.password, data['password']):
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=user.id)  # Create JWT token
         response = make_response(jsonify({
-            'user': {'id': user.id, 'username': user.username, 'name': user.name, 'location': user.location}
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'name': user.name,
+                'location': user.location
+            },
+            'access_token': access_token  # Include JWT token in the response
         }))
-        response.set_cookie('access_token', access_token, httponly=True)
+        response.set_cookie('access_token', access_token, httponly=True)  # Optional: Set token in cookie
         return response
-    
+
     return jsonify({'message': 'Invalid credentials'}), 401
 @bp.route('/protected', methods=['GET'])
 @jwt_required()

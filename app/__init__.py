@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-from flask_cors import CORS  # Import CORS
+from flask_cors import CORS  
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -13,7 +13,7 @@ def create_app():
     # Configurations
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['JWT_SECRET_KEY'] = "b'Y\xf1Xz\x01\xad|eQ\x80t \xca\x1a\x10K'"
+    app.config['JWT_SECRET_KEY'] = "b'Y\xf1Xz\x01\xad|eQ\x80t \xca\x1a\x10K'" 
 
     # Initialize extensions
     db.init_app(app)
@@ -21,11 +21,11 @@ def create_app():
     migrate.init_app(app, db)
 
     # Initialize CORS
-    CORS(app, resources={r"/*": {"origins": "http://localhost:4000"}}, supports_credentials=True)  # Allow requests from frontend origin
+    CORS(app, resources={r"/*": {"origins": "http://localhost:4000"}}, supports_credentials=True)
 
     # Import routes
     from .routes import auth, active_days
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(active_days.bp)
+    app.register_blueprint(auth.bp)  
+    app.register_blueprint(active_days.bp)  
 
     return app

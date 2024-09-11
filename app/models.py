@@ -1,7 +1,8 @@
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy.orm import relationship
 from . import db
 from datetime import datetime
-
-
+from sqlalchemy import Date
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -12,9 +13,10 @@ class User(db.Model):
 class ActiveDay(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
-    day_of_week = db.Column(db.String(10), nullable=False)
+    day_of_week = db.Column(db.String(20), nullable=False)
     streak = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='active_days')
 
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
