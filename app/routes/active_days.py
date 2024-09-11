@@ -40,12 +40,10 @@ def add_active_day():
 @jwt_required()
 def get_active_days():
     user_id = get_jwt_identity()
-    print(f"User ID from token: {user_id}")  # Debugging line
     active_days = ActiveDay.query.filter_by(user_id=user_id).all()
     return jsonify([{
         'id': day.id, 'date': day.date, 'day_of_week': day.day_of_week, 'streak': day.streak
     } for day in active_days])
-
 
 @bp.route('/active_days/<int:id>', methods=['DELETE'])
 @jwt_required()

@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_cors import CORS  
 
+
 db = SQLAlchemy()
 migrate = Migrate()
 
@@ -24,8 +25,9 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": "http://localhost:4000"}}, supports_credentials=True)
 
     # Import routes
-    from .routes import auth, active_days
+    from .routes import auth, active_days, activities
     app.register_blueprint(auth.bp)  
-    app.register_blueprint(active_days.bp)  
+    app.register_blueprint(active_days.bp)
+    app.register_blueprint(activities.bp)
 
     return app
