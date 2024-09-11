@@ -33,7 +33,7 @@ def login():
 
     if user and check_password_hash(user.password, data['password']):
         access_token = create_access_token(identity=user.id)  # Create JWT token
-        response = make_response(jsonify({
+        return jsonify({
             'user': {
                 'id': user.id,
                 'username': user.username,
@@ -41,9 +41,7 @@ def login():
                 'location': user.location
             },
             'access_token': access_token  # Include JWT token in the response
-        }))
-        response.set_cookie('access_token', access_token, httponly=True)  # Optional: Set token in cookie
-        return response
+        }), 200
 
     return jsonify({'message': 'Invalid credentials'}), 401
 
@@ -86,9 +84,9 @@ def auto_login():
         return jsonify({'message': 'JWT is required'}), 400
 
     try:
-        # Decode the JWT to get the user_id
-        decoded_token = decode_token(jwt_token)  # Correct method to use
-        user_id = decoded_token['identity']  # Adjust based on how the JWT is structured
+        # Decode the JWT token
+        decoded_token = decode_token(jwt_token)
+        user_id = decoded_token['sub']  # Adjust based on how the JWT is structured
         
         # Query the database for the user
         user = User.query.get(user_id)
@@ -103,4 +101,6 @@ def auto_login():
             return jsonify({'message': 'User not found.'}), 404
 
     except Exception as e:
+        # Log the exception for debugging
+        print(f"Error: {e}")
         return jsonify({'message': 'Invalid or expired token.'}), 401
