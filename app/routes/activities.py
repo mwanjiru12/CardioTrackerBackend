@@ -5,7 +5,6 @@ from .. import db
 
 bp = Blueprint('activities', __name__)
 
-# GET /activities
 @bp.route('/activities', methods=['GET'])
 @jwt_required()
 def get_activities():
@@ -22,7 +21,6 @@ def get_activities():
     } for activity in activities]
     return jsonify(result)
 
-# GET /activities/:id
 @bp.route('/activities/<int:id>', methods=['GET'])
 @jwt_required()
 def get_activity(id):
@@ -40,19 +38,18 @@ def get_activity(id):
         })
     return jsonify({'message': 'Activity not found'}), 404
 
-# POST /activities
 @bp.route('/activities', methods=['POST'])
 @jwt_required()
 def create_activity():
     data = request.json
     new_activity = Activity(
-        active_day_id=data['activity']['active_day_id'],
-        exercise_type=data['activity']['exercise_type'],
-        activity_length=data['activity']['activity_length'],
-        calories=data['activity']['calories'],
-        distance=data['activity']['distance'],
-        rating=data['activity'].get('rating'),  # Use .get() to avoid KeyError
-        summary=data['activity'].get('summary')  # Use .get() to avoid KeyError
+        active_day_id=data.get('active_day_id'),
+        exercise_type=data.get('exercise_type'),
+        activity_length=data.get('activity_length'),
+        calories=data.get('calories'),
+        distance=data.get('distance'),
+        rating=data.get('rating'),
+        summary=data.get('summary')
     )
     db.session.add(new_activity)
     db.session.commit()
@@ -67,7 +64,6 @@ def create_activity():
         'summary': new_activity.summary
     }), 201
 
-# DELETE /activities/:id
 @bp.route('/activities/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_activity(id):
@@ -78,7 +74,6 @@ def delete_activity(id):
         return jsonify({'message': 'Activity deleted successfully'})
     return jsonify({'message': 'Activity not found'}), 404
 
-# GET /active_days/:id/activities
 @bp.route('/active_days/<int:id>/activities', methods=['GET'])
 @jwt_required()
 def get_activities_by_active_day(id):
@@ -95,7 +90,6 @@ def get_activities_by_active_day(id):
     } for activity in activities]
     return jsonify(result)
 
-# GET /activities/:exercise_type/top/:column
 @bp.route('/activities/<string:exercise_type>/top/<string:column>', methods=['GET'])
 @jwt_required()
 def get_top_activity(exercise_type, column):

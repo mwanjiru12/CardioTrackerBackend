@@ -8,9 +8,14 @@ bp = Blueprint('auth', __name__)
 
 @bp.route('/register', methods=['POST'])
 def register():
-    data = request.json
+    data = request.get_json()
+
+    # Ensure all required fields are present
+    if not data or not all(key in data for key in ('username', 'password', 'name', 'location')):
+        return jsonify({'message': 'All fields (username, password, name, location) are required.'}), 400  # Bad Request
+
     username = data.get('username')
-    password = generate_password_hash(data.get('password'))
+    password_raw = data.get('password')
     name = data.get('name')
     location = data.get('location')
 
@@ -19,31 +24,39 @@ def register():
     if existing_user:
         return jsonify({'message': 'Username already exists. Please choose another one.'}), 409  # Conflict
 
+    # Generate hashed password
+    password = generate_password_hash(password_raw)
+
     # Create a new user if username doesn't exist
     new_user = User(username=username, password=password, name=name, location=location)
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message': 'User created successfully'}), 201
+    return jsonify({'message': 'User created successfully', 'username': username}), 201
 
 @bp.route('/login', methods=['POST'])
 def login():
-    data = request.json
-    user = User.query.filter_by(username=data['username']).first()
+    try:
+        data = request.json
+        user = User.query.filter_by(username=data['username']).first()
 
-    if user and check_password_hash(user.password, data['password']):
-        access_token = create_access_token(identity=user.id)  # Create JWT token
-        return jsonify({
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'name': user.name,
-                'location': user.location
-            },
-            'access_token': access_token  # Include JWT token in the response
-        }), 200
+        if user and check_password_hash(user.password, data['password']):
+            access_token = create_access_token(identity=user.id)  # Create JWT token
+            return jsonify({
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.name,
+                    'location': user.location
+                },
+                'access_token': access_token  # Include JWT token in the response
+            }), 200
 
-    return jsonify({'message': 'Invalid credentials'}), 401
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    except Exception as e:
+        print(f"Error during login: {str(e)}")
+        return jsonify({'message': 'Internal Server Error'}), 500
 
 @bp.route('/protected', methods=['GET'])
 @jwt_required()
